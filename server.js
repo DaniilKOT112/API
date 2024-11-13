@@ -20,12 +20,18 @@ const pool = new Pool({
 app.post('/register', async (req, res) => {
     const {login, password} = req.body;
     try {
+        const result = await pool.query('SELECT * FROM "user" WHERE login = $1', [login]);
+        
+        if (result.rows.length > 0) {
+            return res.status(400).json({error: 'Такой логинг уже существует!'});
+        }
+        
         const hasPassword = await bcrypt.hash(password, 10);
-        const result = await pool.query(
+        const insertResult = await pool.query(
             'INSERT INTO "user" (login, password) VALUES ($1, $2) RETURNING *',
             [login, hasPassword]
         );
-        res.status(201).json({user: result.rows[0]});
+        res.status(201).json({user: insertResult.rows[0]});
     }
     catch (error) {
         console.error(error);
