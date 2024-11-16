@@ -55,6 +55,22 @@ app.post('/create-profile', async (req, res) => {
     }
 });
 
+app.post('/get-profile', async (req, res) => {
+    const { login } = req.body;
+    try {
+      const result = await pool.query('SELECT login, name, description FROM "user" WHERE login = $1', [login]);
+  
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: 'Пользователь не найден!' });
+      }
+  
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Ошибка получения профиля!' });
+    }
+  });
+
 app.post('/login', async (req, res) => {
     const { login, password } = req.body;
     try {
